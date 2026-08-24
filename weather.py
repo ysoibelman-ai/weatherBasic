@@ -27,7 +27,20 @@ def main ():
     longitude = get_longitude(location)
     weather = get_weather(latitude,longitude,key)
     weather_result = process_weather_date(location,weather)
-    print_weather(weather_result)
+    save_to_csv(weather_result)
+
+def save_to_csv(weather_result):
+    file = open("weather_history.csv", "a+", newline="")
+    file.seek(0)
+    writer = csv.writer(file)
+    new = len(file.readlines())
+    if  new == 0:
+        writer.writerow(["search_time","city","state","country","temperature","feels_like","conditions","humidity","wind_speed"])
+    writer.writerow(weather_result.values())
+    file.close()
+
+    
+
 
 def print_weather(weather_result):
     new_weather_result = {}
@@ -45,10 +58,6 @@ def print_weather(weather_result):
     for key, value in new_weather_result.items():
         print (key,":",value)
     
-    
-    
-
-
 def process_weather_date(location,weather):
     data = {"search_time":datetime.datetime.now(),
             "city": location["name"],
