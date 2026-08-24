@@ -6,6 +6,7 @@ from datetime import datetime
 
 def main ():
    
+    key = get_key()
     city = get_city()
     if not check_city(city):
         invalid_city()
@@ -20,39 +21,47 @@ def main ():
         if not check_country_or_state_code(state_code):
             invalid_state_code()
 
-    location = get_location (city,country_code,state_code)
+    location = get_location (city,country_code,state_code,key)
     check_location(location)
     latitude = get_latitude(location)
     longitude = get_longitude(location)
-    print (latitude)
-    print (longitude)
+    weather = get_weather(latitude,longitude,key)
+    print (weather)
 
-    
 
+def get_weather (latitude,longitude,key):
+    basic_url = "https://api.openweathermap.org/data/2.5/weather?"
+    query_parameters = f"lat={latitude}&lon={longitude}&"
+    appid = f"appid={key}"
+
+    result = result = get(f"{basic_url}{query_parameters}{appid}&units=metric").json()
+    if result == []:
+        return None
+    else:
+        return result
+
+def get_location(city, country, state,key):
+    basic_url = "http://api.openweathermap.org/geo/1.0/direct?"
+    query_parameters = f"q={city},{state},{country}&"
+    appid = f"appid={key}"
+
+    result = get(f"{basic_url}{query_parameters}{appid}").json()
+    if result == []:
+        return None
+    else:
+        return result[0]
     
 def get_latitude(location):
     return location["lat"]
 
 def get_longitude(location):
     return location["lon"]
-    
 
 def check_location(location):
     if not location:
         exit("Location not found")
 
-def get_location(city, country, state):
-    basic_url = "http://api.openweathermap.org/geo/1.0/direct?"
-    query_parameters = f"q={city},{state},{country}&"
-    appid = f"appid={get_key()}"
 
-    result = get(f"{basic_url}{query_parameters}{appid}")
-    result = result.json()
-    if result == []:
-        return None
-    else:
-        return result[0]
-    
 
 def get_key () -> str:
     load_dotenv()
@@ -91,10 +100,5 @@ def invalid_state_code():
 def get_state_code():
     state_code = input("enter state code: ").upper().strip()
     return state_code
-
-
-
-
-
 
 main ()
