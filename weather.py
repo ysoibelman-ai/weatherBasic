@@ -21,21 +21,36 @@ def main ():
             invalid_state_code()
 
     location = get_location (city,country_code,state_code)
-    print (location)
+    check_location(location)
+    latitude = get_latitude(location)
+    longitude = get_longitude(location)
+    print (latitude)
+    print (longitude)
 
     
+
     
+def get_latitude(location):
+    return location["lat"]
+
+def get_longitude(location):
+    return location["lon"]
     
+
+def check_location(location):
+    if not location:
+        exit("Location not found")
+
 def get_location(city, country, state):
     basic_url = "http://api.openweathermap.org/geo/1.0/direct?"
     query_parameters = f"q={city},{state},{country}&"
     appid = f"appid={get_key()}"
 
     result = get(f"{basic_url}{query_parameters}{appid}")
+    result = result.json()
     if result == []:
         return None
     else:
-        result = result.json()
         return result[0]
     
 
