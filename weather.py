@@ -26,20 +26,44 @@ def main ():
     latitude = get_latitude(location)
     longitude = get_longitude(location)
     weather = get_weather(latitude,longitude,key)
-    data = process_weather_date(location,weather)
+    weather_result = process_weather_date(location,weather)
+    save_to_csv(weather_result)
 
-    for key,value in data.items():
+def save_to_csv(weather_result):
+    file = open("weather_history.csv", "a+", newline="")
+    file.seek(0)
+    writer = csv.writer(file)
+    new = len(file.readlines())
+    if  new == 0:
+        writer.writerow(["search_time","city","state","country","temperature","feels_like","conditions","humidity","wind_speed"])
+    writer.writerow(weather_result.values())
+    file.close()
+
+    
+
+
+def print_weather(weather_result):
+    new_weather_result = {}
+    for key,value in weather_result.items():
+        key = key.capitalize()
+        new_weather_result[key] = value
+
+    new_weather_result["Temperature"] = str(new_weather_result["Temperature"]) + "\u00b0C" 
+    new_weather_result["Feels_like"] = str(new_weather_result["Feels_like"]) + "\u00b0C" 
+    new_weather_result["Humidity"] = str(new_weather_result["Humidity"]) + "%" 
+    new_weather_result["Wind_speed"] = str(new_weather_result["Wind_speed"]) + "m/s" 
+    if new_weather_result["State"] == "":
+        new_weather_result.pop("State")
+
+    for key, value in new_weather_result.items():
         print (key,":",value)
-    # print (data)
-
-
-
+    
 def process_weather_date(location,weather):
     data = {"search_time":datetime.datetime.now(),
             "city": location["name"],
             "state":location["state"],
             "country":location["country"],
-            "temperature":weather["weather"][0]["main"],
+            "temperature":weather["main"]["temp"],
             "feels_like":weather["main"]["feels_like"],
             "condition":weather["weather"][0]["description"],
             "humidity":weather["main"]["humidity"],
