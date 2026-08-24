@@ -2,7 +2,7 @@ from dotenv import load_dotenv
 import os
 from requests import get
 import csv
-from datetime import datetime
+import datetime
 
 def main ():
    
@@ -26,7 +26,27 @@ def main ():
     latitude = get_latitude(location)
     longitude = get_longitude(location)
     weather = get_weather(latitude,longitude,key)
-    print (weather)
+    data = process_weather_date(location,weather)
+
+    for key,value in data.items():
+        print (key,":",value)
+    # print (data)
+
+
+
+def process_weather_date(location,weather):
+    data = {"search_time":datetime.datetime.now(),
+            "city": location["name"],
+            "state":location["state"],
+            "country":location["country"],
+            "temperature":weather["weather"][0]["main"],
+            "feels_like":weather["main"]["feels_like"],
+            "condition":weather["weather"][0]["description"],
+            "humidity":weather["main"]["humidity"],
+            "wind_speed":weather["wind"]["speed"]
+            }
+    return data
+
 
 
 def get_weather (latitude,longitude,key):
