@@ -2,10 +2,11 @@ from dotenv import load_dotenv
 import os
 from requests import get
 import csv
-from datetime import datetime
+import datetime
 
 def main ():
    
+    key = get_key()
     city = get_city()
     if not check_city(city):
         invalid_city()
@@ -20,24 +21,67 @@ def main ():
         if not check_country_or_state_code(state_code):
             invalid_state_code()
 
-    location = get_location (city,country_code,state_code)
-    print (location)
+    location = get_location (city,country_code,state_code,key)
+    check_location(location)
+    latitude = get_latitude(location)
+    longitude = get_longitude(location)
+    weather = get_weather(latitude,longitude,key)
+    data = process_weather_date(location,weather)
 
-    
-    
-    
-def get_location(city, country, state):
-    basic_url = "http://api.openweathermap.org/geo/1.0/direct?"
-    query_parameters = f"q={city},{state},{country}&"
-    appid = f"appid={get_key()}"
+    for key,value in data.items():
+        print (key,":",value)
+    # print (data)
 
-    result = get(f"{basic_url}{query_parameters}{appid}")
+
+
+def process_weather_date(location,weather):
+    data = {"search_time":datetime.datetime.now(),
+            "city": location["name"],
+            "state":location["state"],
+            "country":location["country"],
+            "temperature":weather["weather"][0]["main"],
+            "feels_like":weather["main"]["feels_like"],
+            "condition":weather["weather"][0]["description"],
+            "humidity":weather["main"]["humidity"],
+            "wind_speed":weather["wind"]["speed"]
+            }
+    return data
+
+
+
+def get_weather (latitude,longitude,key):
+    basic_url = "https://api.openweathermap.org/data/2.5/weather?"
+    query_parameters = f"lat={latitude}&lon={longitude}&"
+    appid = f"appid={key}"
+
+    result = result = get(f"{basic_url}{query_parameters}{appid}&units=metric").json()
     if result == []:
         return None
     else:
-        result = result.json()
+        return result
+
+def get_location(city, country, state,key):
+    basic_url = "http://api.openweathermap.org/geo/1.0/direct?"
+    query_parameters = f"q={city},{state},{country}&"
+    appid = f"appid={key}"
+
+    result = get(f"{basic_url}{query_parameters}{appid}").json()
+    if result == []:
+        return None
+    else:
         return result[0]
     
+def get_latitude(location):
+    return location["lat"]
+
+def get_longitude(location):
+    return location["lon"]
+
+def check_location(location):
+    if not location:
+        exit("Location not found")
+
+
 
 def get_key () -> str:
     load_dotenv()
@@ -76,10 +120,5 @@ def invalid_state_code():
 def get_state_code():
     state_code = input("enter state code: ").upper().strip()
     return state_code
-
-
-
-
-
 
 main ()
